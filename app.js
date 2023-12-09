@@ -8,6 +8,7 @@ const MockAdapter = require('@bot-whatsapp/database/mock')
 const { handlerAI } = require("./utils");
 const { ttsElevenLabs } = require("./services/eventlab");
 const { createThread, sendToAssistant, ttsOpenAI, dalleAPI } = require("./services/openai");
+const { listClients, searchByPhoneNumber, searchByIDNumber } = require("./services/wisphub");
 
 let thread = null;
 const path = require('path');
@@ -53,7 +54,7 @@ const flowVoiceNote = addKeyword(EVENTS.VOICE_NOTE).addAction(
 );
 
 const main = async () => {
-  try {
+  /*try {
     thread = await createThread();
     const adapterDB = new MockAdapter()
     const adapterFlow = createFlow([flowVoiceNote, flowGPT])
@@ -66,6 +67,13 @@ const main = async () => {
     })
 
     QRPortalWeb()
+  }
+  catch (error) {
+    console.error(error);
+  }*/
+  try {
+    const list = await listClients();
+    console.log(searchByPhoneNumber(list, "3106559911"));
   }
   catch (error) {
     console.error(error);
