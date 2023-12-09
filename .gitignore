@@ -48,6 +48,9 @@ bot.qr.png
 .netlify
 .secrets
 
+#env
+.env
+
 # managed
 **.data.json
 **.node-persist**
