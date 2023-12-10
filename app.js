@@ -11,13 +11,31 @@ const { createThread, sendToAssistant, ttsOpenAI, dalleAPI } = require("./servic
 const { listClients, searchByPhoneNumber, searchByIDNumber } = require("./services/wisphub");
 
 let thread = null;
+let list = null;
 const path = require('path');
+let countIteration = 0;
+let data = null;
 
-const flowGPT = addKeyword(EVENTS.WELCOME).addAction(
+const firstInteraction = async (ctx) => {
+  const searchClient = searchByPhoneNumber(list, ctx.from.substring(2));
+  if (searchClient != null) {
+    return await sendToAssistant(thread, ctx.body, searchClient.nombre);
+  }
+  else {
+    return await sendToAssistant(thread, ctx.body, null);
+  }  
+}
+
+const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
     async (ctx, ctxFn) => {
         console.log('Mensaje entrante : ', ctx.body)
-        //const data = await gptAPI(ctx.body);
-        const data = await sendToAssistant(thread, ctx.body);
+        if (countIteration == 0) {
+          data = await firstInteraction(ctx);
+          countIteration++;
+        }
+        else {
+          data = await sendToAssistant(thread, ctx.body, null);
+        }
         console.log('Mensaje saliente : ', data)
         /*console.log("🙉 texto a voz....");
         const path = await ttsElevenLabs(data);
@@ -41,8 +59,13 @@ const flowVoiceNote = addKeyword(EVENTS.VOICE_NOTE).addAction(
         console.log(`🤖 Fin voz a texto....[TEXT]: ${text}`);
         const currentState = ctxFn.state.getMyState();
         const fullSentence = `${currentState?.answer ?? ""}. ${text}`;
-        //const data = await gptAPI(fullSentence);
-        const data = await sendToAssistant(thread, fullSentence);
+        if (countIteration == 0) {
+          data = await firstInteraction(ctx);
+          countIteration++;
+        }
+        else {
+          data = await sendToAssistant(thread, ctx.body, null);
+        }
         console.log('Mensaje saliente : ', data)
         /*console.log("🙉 texto a voz....");
         const path = await ttsElevenLabs(data);
@@ -54,10 +77,11 @@ const flowVoiceNote = addKeyword(EVENTS.VOICE_NOTE).addAction(
 );
 
 const main = async () => {
-  /*try {
+  try {
     thread = await createThread();
+    list = await listClients();
     const adapterDB = new MockAdapter()
-    const adapterFlow = createFlow([flowVoiceNote, flowGPT])
+    const adapterFlow = createFlow([flowVoiceNote, flowWelcome])
     const adapterProvider = createProvider(BaileysProvider)
 
     createBot({
@@ -70,13 +94,13 @@ const main = async () => {
   }
   catch (error) {
     console.error(error);
-  }*/
-  try {
+  }
+  /*try {
     const list = await listClients();
     console.log(searchByPhoneNumber(list, "3106559911"));
   }
   catch (error) {
     console.error(error);
-  }
+  }*/
 }
 main()

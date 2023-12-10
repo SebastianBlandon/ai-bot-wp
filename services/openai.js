@@ -15,10 +15,14 @@ const createThread = async () => {
     return thr;
 }
 
-const sendToAssistant = async (thread, message) => {
+const sendToAssistant = async (thread, message, nameClient) => {
   try {
+    console.log("sendToAssistant")
     const assistant = await retrieveAssistant();
     // Pass in the user question into the existing thread
+    if (nameClient != null) {
+        message += `Hola Soy ${nameClient}`;
+    }
     await openai.beta.threads.messages.create(thread.id, {
       role: "user",
       content: message,
