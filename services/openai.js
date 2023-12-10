@@ -17,7 +17,6 @@ const createThread = async () => {
 
 const sendToAssistant = async (thread, message, nameClient) => {
   try {
-    console.log("sendToAssistant")
     const assistant = await retrieveAssistant();
     // Pass in the user question into the existing thread
     if (nameClient != null) {
