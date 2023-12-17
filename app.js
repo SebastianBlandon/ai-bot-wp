@@ -26,6 +26,20 @@ const firstInteraction = async (ctx) => {
   }  
 }
 
+const sessions = {};
+
+function getSession(userIdentifier) {
+    if (!sessions[userIdentifier]) {
+        // Create a new session if it doesn't exist
+        sessions[userIdentifier] = {
+            chatHistory: [],
+            isLoggedIn: false,
+            // ... any other session-specific data
+        };
+    }
+    return sessions[userIdentifier];
+}
+
 const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
     async (ctx, ctxFn) => {
         console.log('Mensaje entrante : ', ctx.body)
