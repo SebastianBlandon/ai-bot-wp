@@ -13,19 +13,9 @@ const { listClients, searchByPhoneNumber, searchByIDNumber } = require("./servic
 let assistant = null;
 let thread = null;
 let list = null;
+let createTicket = false;
 const path = require('path');
-let countIteration = 0;
 let data = null;
-
-const firstInteraction = async (ctx) => {
-  const searchClient = searchByPhoneNumber(list, ctx.from.substring(2));
-  if (searchClient != null) {
-    return await sendToAssistant(thread, ctx.body, searchClient.nombre);
-  }
-  else {
-    return await sendToAssistant(thread, ctx.body, null);
-  }  
-}
 
 const sessions = {};
 
@@ -43,38 +33,23 @@ function getSession(userIdentifier) {
 }
 
 const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
-    async (ctx, ctxFn) => {
-        console.log('Mensaje entrante : ', ctx.body)
-        if (countIteration == 0) {
-          data = await firstInteraction(ctx);
-          countIteration++;
-        }
-        else {
-          data = await sendToAssistant(thread, ctx.body, null);
-        }
-        console.log('Mensaje saliente : ', data)
-        /*console.log("🙉 texto a voz....");
-        const path = await ttsElevenLabs(data);
-        console.log(`🙉 Fin texto a voz....[PATH]:${path}`);
-        //console.log("🙉 texto a imagen....");
-        //const urlPicture = await dalleAPI(data);
-        //console.log(`🙉 Fin texto a imagen....[PATH]:${urlPicture}`);
-        //await ctxFn.flowDynamic(urlPicture);
-        //await ctxFn.flowDynamic([{ body: " " , media : urlPicture}]);
-        await ctxFn.flowDynamic([{ body: "escucha", media: path }]);*/
-        await ctxFn.flowDynamic(data);
-        console.log("🙉 Envio de mensajes completado....");
-    }
-);
-
-const flowWelcomeStream = addKeyword(EVENTS.WELCOME).addAction(
   async (ctx, ctxFn) => {
       try {
           const userIdentifier = ctx.from;
           const session = getSession(userIdentifier);
 
+          if (createTicket) {
+            const searchClient = searchByIDNumber(list, ctx.body);
+            if (searchClient != null) {
+              //const ticket = await createTicket(searchClient.id, ctx.body);
+              console.log("Ticket creado: ");
+            }
+            else {
+              ctx.body += " Nota del sistema : No se encontró el cliente, la cédula no está registrada en el sistema.";
+            }
+            createTicket = false;
+          }
           console.log('Incoming message: ', ctx.body, ' desde num:', userIdentifier);
-
           if (!session.isLoggedIn) {
             assistant = await retrieveAssistant();
             thread = await initAssistant();
@@ -95,6 +70,10 @@ const flowWelcomeStream = addKeyword(EVENTS.WELCOME).addAction(
             data = await sendToAssistant(thread, assistant, ctx.body, null);
           }
           console.log('Mensaje saliente : ', data)
+          if ((data.includes("ticket") || data.includes("Ticket")) && (data.includes("cédula") || data.includes("Cédula"))) {
+            createTicket = true;
+            console.log("Creando ticket....");
+          }
           await ctxFn.flowDynamic(data);
           console.log("🙉 Envio de mensajes completado....");
       } catch (error) {
@@ -147,7 +126,7 @@ const flowVoiceNote = addKeyword(EVENTS.VOICE_NOTE).addAction(
 const main = async () => {
   try {
     const adapterDB = new MockAdapter()
-    const adapterFlow = createFlow([flowVoiceNote, flowWelcomeStream])
+    const adapterFlow = createFlow([flowVoiceNote, flowWelcome])
     const adapterProvider = createProvider(BaileysProvider)
 
     createBot({

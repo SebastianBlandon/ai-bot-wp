@@ -17,7 +17,6 @@ const initAssistant = async () => {
 
 const sendToAssistant = async (thread, assistant, message, nameClient) => {
   try {
-    console.log("Send to assistant thread: ", thread.id);
     // Pass in the user question into the existing thread
     if (nameClient != null) {
         message += `Hola Soy ${nameClient}`;
