@@ -10,14 +10,14 @@ const retrieveAssistant = async () => {
 }
 
 // Create a thread
-const createThread = async () => {
+const initAssistant = async () => {
     const thr = await openai.beta.threads.create();
     return thr;
 }
 
-const sendToAssistant = async (thread, message, nameClient) => {
+const sendToAssistant = async (thread, assistant, message, nameClient) => {
   try {
-    const assistant = await retrieveAssistant();
+    console.log("Send to assistant thread: ", thread.id);
     // Pass in the user question into the existing thread
     if (nameClient != null) {
         message += `Hola Soy ${nameClient}`;
@@ -92,4 +92,4 @@ const ttsOpenAI = async (text) => {
     return speechFile;
 }
 
-module.exports = { createThread, sendToAssistant, ttsOpenAI, dalleAPI };
+module.exports = { initAssistant, retrieveAssistant, sendToAssistant, ttsOpenAI, dalleAPI };
