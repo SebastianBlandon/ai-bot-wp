@@ -1,6 +1,7 @@
 const axios = require('axios');
 
 const clientsUrl = 'https://api.wisphub.net/api/clientes/';
+const ticketsUrl = 'https://api.wisphub.net/api/tickets/';
 
 const WISPHUB_NET_KEY = process.env.WISPHUB_NET_KEY ?? "";
 
@@ -10,6 +11,25 @@ const offset = 0; // Posición inicial de la consulta
 const listClients = async () => {
     try {
         const response = await axios.get(clientsUrl, {
+            headers: {
+              'Authorization': `Api-Key ${WISPHUB_NET_KEY}`
+            },
+            params: {
+                limit: limit,
+                offset: offset
+                // Otros parámetros de consulta (si es necesario)
+              }
+          });
+        return response.data;
+    }
+    catch (error) {
+        console.error(error);
+    }
+}
+
+const listTickets = async () => {
+    try {
+        const response = await axios.get(ticketsUrl, {
             headers: {
               'Authorization': `Api-Key ${WISPHUB_NET_KEY}`
             },
@@ -42,4 +62,4 @@ const searchByIDNumber = (clientsObj, IDNumber) => {
     return foundClient || null; // Return the found client or null if not found
 };
 
-module.exports = { listClients, searchByPhoneNumber, searchByIDNumber };
+module.exports = { listClients, listTickets, searchByPhoneNumber, searchByIDNumber };

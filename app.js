@@ -8,11 +8,12 @@ const MockAdapter = require('@bot-whatsapp/database/mock')
 const { handlerAI } = require("./utils");
 const { ttsElevenLabs } = require("./services/eventlab");
 const { initAssistant, retrieveAssistant, sendToAssistant, ttsOpenAI, dalleAPI } = require("./services/openai");
-const { listClients, searchByPhoneNumber, searchByIDNumber } = require("./services/wisphub");
+const { listClients, listTickets, searchByPhoneNumber, searchByIDNumber } = require("./services/wisphub");
 
 let assistant = null;
 let thread = null;
-let list = null;
+let clients = null;
+let tickets = null;
 let createTicket = false;
 const path = require('path');
 let data = null;
@@ -39,8 +40,16 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
           const session = getSession(userIdentifier);
 
           if (createTicket) {
-            const searchClient = searchByIDNumber(list, ctx.body);
+            const searchClient = searchByIDNumber(clients, ctx.body);
             if (searchClient != null) {
+              console.log("Cliente encontrado: ", searchClient);
+              tickets = await listTickets();
+              if (tickets != null) {
+                console.log("Tickets encontrados: ", tickets);
+              }
+              else {
+                console.log("No se encontraron tickets");
+              }
               //const ticket = await createTicket(searchClient.id, ctx.body);
               console.log("Ticket creado: ");
             }
@@ -53,8 +62,8 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
           if (!session.isLoggedIn) {
             assistant = await retrieveAssistant();
             thread = await initAssistant();
-            list = await listClients();
-            const searchClient = searchByPhoneNumber(list, ctx.from.substring(2));
+            clients = await listClients();
+            const searchClient = searchByPhoneNumber(clients, ctx.from.substring(2));
             if (searchClient != null) {
               data = await sendToAssistant(thread, assistant, ctx.body, searchClient.nombre);
             }
@@ -98,8 +107,8 @@ const flowVoiceNote = addKeyword(EVENTS.VOICE_NOTE).addAction(
           if (!session.isLoggedIn) {
             assistant = await retrieveAssistant();
             thread = await initAssistant();
-            list = await listClients();
-            const searchClient = searchByPhoneNumber(list, ctx.from.substring(2));
+            clients = await listClients();
+            const searchClient = searchByPhoneNumber(clients, ctx.from.substring(2));
             if (searchClient != null) {
               data = await sendToAssistant(thread, assistant, fullSentence, searchClient.nombre);
             }
