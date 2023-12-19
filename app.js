@@ -47,7 +47,6 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
 
           if (processCreateTicket) {
             subject = ctx.body;
-            console.log("Proceso de creacion de ticket....", subject);
             createTicket(session.client.id_servicio, subject);
             processCreateTicket = false;
           }
@@ -56,7 +55,6 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
             if (client != null) {
               session.client = client;
               tickets = await listTickets();
-              console.log("tickets : ", tickets, " \ncliente : ", client);
               if (tickets != null) {
                 // Suponiendo que 'response' contiene la respuesta que recibiste
                 idServicio = client.id_servicio; // Aquí debes reemplazar con el id_servicio que tienes
@@ -66,13 +64,11 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
 
                 if (ticketEncontrado) {
                   // Si se encontró un ticket para el id_servicio específico
-                  console.log('Se encontró un ticket para el servicio:', ticketEncontrado);
                   ctx.body += " Nota del sistema : se encontró un ticket para el servicio, dile al cliente que ya se tiene registro de su falla y que ya se comunican con el.";
                 } else {
                   // Si no se encontró ningún ticket para el id_servicio específico
                   processCreateTicket = true;
                   ctx.body += " Nota del sistema : se procede a crear el ticket al usuario, pidele la descripcion de la falla.";
-                  console.log('No se encontró ningún ticket para este servicio.');
                 }
               }
               else {
@@ -110,7 +106,7 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
           await ctxFn.flowDynamic(data);
           console.log("🙉 Envio de mensajes completado....");
       } catch (error) {
-          console.error('Error in flowGPTStream:', error);
+          console.error('Error in flowWelcome:', error);
       }
   }
 );
@@ -123,18 +119,53 @@ const flowVoiceNote = addKeyword(EVENTS.VOICE_NOTE).addAction(
           console.log(`🤖 Fin voz a texto....[TEXT]: ${text}`);
           const currentState = ctxFn.state.getMyState();
           const fullSentence = `${currentState?.answer ?? ""}. ${text}`;
+          
+          console.log("Mensaje entrante : ", fullSentence);
           const userIdentifier = ctx.from;
           const session = getSession(userIdentifier);
 
-          console.log('Incoming message: ', fullSentence, ' desde num:', userIdentifier);
+          if (processCreateTicket) {
+            subject = fullSentence;
+            createTicket(session.client.id_servicio, subject);
+            processCreateTicket = false;
+          }
+          else if (createNewTicket) {
+            client = searchByIDNumber(clients, fullSentence);
+            if (client != null) {
+              session.client = client;
+              tickets = await listTickets();
+              if (tickets != null) {
+                // Suponiendo que 'response' contiene la respuesta que recibiste
+                idServicio = client.id_servicio; // Aquí debes reemplazar con el id_servicio que tienes
 
+                // Verificar si hay algún ticket asociado al id_servicio en la lista de resultados
+                const ticketEncontrado = tickets.results.find(ticket => ticket.servicio.id_servicio === idServicio);
+
+                if (ticketEncontrado) {
+                  // Si se encontró un ticket para el id_servicio específico
+                  fullSentence += " Nota del sistema : se encontró un ticket para el servicio, dile al cliente que ya se tiene registro de su falla y que ya se comunican con el.";
+                } else {
+                  // Si no se encontró ningún ticket para el id_servicio específico
+                  processCreateTicket = true;
+                  fullSentence += " Nota del sistema : se procede a crear el ticket al usuario, pidele la descripcion de la falla.";
+                }
+              }
+              else {
+                console.log("No se encontraron tickets");
+              }
+            }
+            else {
+              fullSentence += " Nota del sistema : No se encontró el cliente, la cédula no está registrada en el sistema o la escribieron mal, pidele que vuelvan a escribirla.";
+            }
+            createNewTicket = false;
+          }
           if (!session.isLoggedIn) {
             assistant = await retrieveAssistant();
             thread = await initAssistant();
             clients = await listClients();
-            const searchClient = searchByPhoneNumber(clients, ctx.from.substring(2));
-            if (searchClient != null) {
-              data = await sendToAssistant(thread, assistant, fullSentence, searchClient.nombre);
+            client = searchByPhoneNumber(clients, ctx.from.substring(2));
+            if (client != null) {
+              data = await sendToAssistant(thread, assistant, fullSentence, client.nombre);
             }
             else {
               data = await sendToAssistant(thread, assistant, fullSentence, null);
@@ -142,10 +173,13 @@ const flowVoiceNote = addKeyword(EVENTS.VOICE_NOTE).addAction(
             session.isLoggedIn = true; // Update the isLoggedIn flag in the session
             session.thread = thread;
             session.assistant = assistant;
+            session.client = client;
           }
           else {
-            const { thread, assistant } = session;
-            data = await sendToAssistant(thread, assistant, fullSentence, null);
+            data = await sendToAssistant(session.thread, session.assistant, fullSentence, null);
+          }
+          if ((data.includes("ticket") || data.includes("Ticket") || data.includes("soporte") || data.includes("Soporte")) && (data.includes("cédula") || data.includes("Cédula"))) {
+            createNewTicket = true;
           }
           console.log('Mensaje saliente : ', data)
           await ctxFn.flowDynamic(data);
