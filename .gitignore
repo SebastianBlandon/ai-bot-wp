@@ -42,7 +42,6 @@ qr.svg
 package-lock.json
 yarn-error.log
 .npmrc
-Dockerfile
 bot.qr.png
 # Local Netlify folder
 .netlify
