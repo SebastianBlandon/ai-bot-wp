@@ -3,6 +3,7 @@ const FormData = require('form-data');
 
 const clientsUrl = 'https://api.wisphub.net/api/clientes/';
 const ticketsUrl = 'https://api.wisphub.net/api/tickets/';
+const staffUrl = 'https://api.wisphub.net/api/staff/';
 
 const WISPHUB_NET_KEY = process.env.WISPHUB_NET_KEY ?? "";
 
@@ -31,6 +32,25 @@ const listClients = async () => {
 const listTickets = async () => {
     try {
         const response = await axios.get(ticketsUrl, {
+            headers: {
+              'Authorization': `Api-Key ${WISPHUB_NET_KEY}`
+            },
+            params: {
+                limit: limit,
+                offset: offset
+                // Otros parámetros de consulta (si es necesario)
+              }
+          });
+        return response.data;
+    }
+    catch (error) {
+        console.error(error);
+    }
+}
+
+const listStaff = async () => {
+    try {
+        const response = await axios.get(staffUrl, {
             headers: {
               'Authorization': `Api-Key ${WISPHUB_NET_KEY}`
             },
@@ -82,7 +102,7 @@ const createTicket = async (idService, subject) => {
       const data = new FormData();
       data.append('asuntos_default', 'Internet Lento');
       data.append('asunto', subject);
-      data.append('tecnico', '0');
+      data.append('tecnico', '4040152');
       data.append('descripcion', '<p>El ticket fue creado por el bot de whatsapp, preguntar exactamente la razón del reporte.</p>');
       data.append('estado', '1');
       data.append('prioridad', '1');
@@ -129,4 +149,4 @@ const searchByIDNumber = (clientsObj, IDNumber) => {
     return foundClient || null; // Return the found client or null if not found
 };
 
-module.exports = { listClients, listTickets, searchByPhoneNumber, searchByIDNumber, createTicket };
+module.exports = { listClients, listTickets, listStaff, searchByPhoneNumber, searchByIDNumber, createTicket };

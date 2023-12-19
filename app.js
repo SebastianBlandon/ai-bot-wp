@@ -8,7 +8,7 @@ const MockAdapter = require('@bot-whatsapp/database/mock')
 const { handlerAI } = require("./utils");
 const { ttsElevenLabs } = require("./services/eventlab");
 const { initAssistant, retrieveAssistant, sendToAssistant, ttsOpenAI, dalleAPI } = require("./services/openai");
-const { listClients, listTickets, searchByPhoneNumber, searchByIDNumber, createTicket } = require("./services/wisphub");
+const { listClients, listTickets, listStaff, searchByPhoneNumber, searchByIDNumber, createTicket } = require("./services/wisphub");
 
 
 let assistant = null;
@@ -52,12 +52,14 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
             processCreateTicket = false;
           }
           else if (createNewTicket) {
-            if (session.client != null) {
+            client = searchByIDNumber(clients, ctx.body);
+            if (client != null) {
+              session.client = client;
               tickets = await listTickets();
-              console.log("tickets : ", tickets, " \ncliente : ", session.client);
+              console.log("tickets : ", tickets, " \ncliente : ", client);
               if (tickets != null) {
                 // Suponiendo que 'response' contiene la respuesta que recibiste
-                idServicio = session.client.id_servicio; // Aquí debes reemplazar con el id_servicio que tienes
+                idServicio = client.id_servicio; // Aquí debes reemplazar con el id_servicio que tienes
 
                 // Verificar si hay algún ticket asociado al id_servicio en la lista de resultados
                 const ticketEncontrado = tickets.results.find(ticket => ticket.servicio.id_servicio === idServicio);
@@ -65,6 +67,7 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
                 if (ticketEncontrado) {
                   // Si se encontró un ticket para el id_servicio específico
                   console.log('Se encontró un ticket para el servicio:', ticketEncontrado);
+                  ctx.body += " Nota del sistema : se encontró un ticket para el servicio, dile al cliente que ya se tiene registro de su falla y que ya se comunican con el.";
                 } else {
                   // Si no se encontró ningún ticket para el id_servicio específico
                   processCreateTicket = true;
@@ -77,34 +80,7 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
               }
             }
             else {
-              client = searchByIDNumber(clients, ctx.body);
-              if (client != null) {
-                session.client = client;
-                tickets = await listTickets();
-                if (tickets != null) {
-                  // Suponiendo que 'response' contiene la respuesta que recibiste
-                  idServicio = session.client.id_servicio; // Aquí debes reemplazar con el id_servicio que tienes
-
-                  // Verificar si hay algún ticket asociado al id_servicio en la lista de resultados
-                  const ticketEncontrado = tickets.results.find(ticket => ticket.servicio.id_servicio === idServicio);
-
-                  if (ticketEncontrado) {
-                    // Si se encontró un ticket para el id_servicio específico
-                    console.log('Se encontró un ticket para el servicio:', ticketEncontrado);
-                  } else {
-                    // Si no se encontró ningún ticket para el id_servicio específico
-                    processCreateTicket = true;
-                    ctx.body += " Nota del sistema : se procede a crear el ticket al usuario, pidele la descripcion de la falla.";
-                    console.log('No se encontró ningún ticket para este servicio.');
-                  }
-                }
-                else {
-                  console.log("No se encontraron tickets");
-                }
-              }
-              else {
-                ctx.body += " Nota del sistema : No se encontró el cliente, la cédula no está registrada en el sistema o la escribieron mal, pidele que vuelvan a escribirla.";
-              }
+              ctx.body += " Nota del sistema : No se encontró el cliente, la cédula no está registrada en el sistema o la escribieron mal, pidele que vuelvan a escribirla.";
             }
             createNewTicket = false;
           }
@@ -129,11 +105,6 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
           }
           if ((data.includes("ticket") || data.includes("Ticket") || data.includes("soporte") || data.includes("Soporte")) && (data.includes("cédula") || data.includes("Cédula"))) {
             createNewTicket = true;
-            if (session.client != null) {
-              ctx.body += " Nota del sistema : Ya se tiene la cedula del cliente se procede a crear el ticket al usuario, saludas al clienta y pidele la descripcion de la falla.";
-              data = await sendToAssistant(session.thread, session.assistant, ctx.body, null);
-              processCreateTicket = true;
-            }
           }
           console.log('Mensaje saliente : ', data)
           await ctxFn.flowDynamic(data);
