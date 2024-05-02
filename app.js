@@ -16,7 +16,7 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
           data = await logicBot(ctx.from, ctx.body);
           console.log('Mensaje saliente : ', data)
           await ctxFn.flowDynamic(data);
-          console.log("🙉 Envio de mensajes completado....");
+	  console.log("🙉 Envio de mensajes completado....");
       } catch (error) {
           console.error('Error in flowWelcome:', error);
       }
@@ -36,7 +36,7 @@ const flowVoiceNote = addKeyword(EVENTS.VOICE_NOTE).addAction(
           data = await logicBot(ctx.from, fullSentence);
           console.log('Mensaje saliente : ', data)
           await ctxFn.flowDynamic(data);
-          console.log("🙉 Envio de mensajes completado....");
+	  console.log("🙉 Envio de mensajes completado....");
       } catch (error) {
           console.error('Error in flowVoiceNote:', error);
       }
