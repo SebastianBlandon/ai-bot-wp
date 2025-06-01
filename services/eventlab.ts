@@ -1,10 +1,12 @@
-const fs = require('node:fs')
+import fs from 'node:fs';
+
 /**
  *
- * @param {*} voiceId clone voice vwfl76D5KBjKuSGfTbLB
- * @returns
+ * @param {string} text - Texto a convertir a voz
+ * @param {string} voiceId - ID de la voz a utilizar (clone voice vwfl76D5KBjKuSGfTbLB)
+ * @returns {Promise<Buffer>} - Buffer con el audio generado
  */
-const ttsElevenLabs = async (text,voiceId = 'WNgYJW08E8uDkDdKPlye') => {
+const ttsElevenLabs = async (text: string, voiceId: string = 'WNgYJW08E8uDkDdKPlye'): Promise<Buffer> => {
   try {
     const EVENT_TOKEN = process.env.EVENT_TOKEN ?? "";
     const URL = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
@@ -27,18 +29,16 @@ const ttsElevenLabs = async (text,voiceId = 'WNgYJW08E8uDkDdKPlye') => {
       method: "POST",
       headers: header,
       body: raw,
-      redirect: "follow",
+      redirect: "follow" as RequestRedirect,
     };
 
     const response = await fetch(URL, requestOptions);
     const buffer = await response.arrayBuffer();
-    const pathFile = `./tmp/speech.mp3`;
-
-    fs.writeFileSync(pathFile, Buffer.from(buffer));
-    return pathFile;
+    return Buffer.from(buffer);
   } catch (error) {
-    console.log(error);
+    console.log("Error:", error);
+    throw new Error("Error en la conversión de texto a voz");
   }
 };
 
-module.exports = { ttsElevenLabs };
+export { ttsElevenLabs };
