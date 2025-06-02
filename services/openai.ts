@@ -5,7 +5,7 @@ import path from 'path';
 const speechFile = path.resolve("./tmp/speech.mp3");
 
 const retrieveAssistant = async () => {
-    const assis = await openai.beta.assistants.retrieve("asst_DYqo7z0n1X1gKsk2mW0EzSB0");
+    const assis = await openai.beta.assistants.retrieve("asst_vuMtK04vwfpBwcYGayHhrQNS");
     return assis;
 }
 
