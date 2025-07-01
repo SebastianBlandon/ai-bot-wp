@@ -9,16 +9,16 @@ ffmpeg.setFfmpegPath(ffmpegPath);
  * @returns {Promise<boolean>} - Promesa que se resuelve cuando la conversión se completa
  */
 const convertOggMp3 = async (inputStream: string, outStream: string): Promise<boolean> => {
-  return new Promise((resolve, reject) => {
-    ffmpeg(inputStream)
-      .audioQuality(96)
-      .toFormat("mp3")
-      .save(outStream)
-      .on("progress", (p) => null)
-      .on("end", () => {
-        resolve(true);
-      });
-  });
+    return new Promise((resolve, reject) => {
+        ffmpeg(inputStream)
+        .audioQuality(96)
+        .toFormat("mp3")
+        .save(outStream)
+        .on("progress", (p) => null)
+        .on("end", () => {
+            resolve(true);
+        });
+    });
 };
 
 export { convertOggMp3 };

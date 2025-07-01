@@ -2,11 +2,11 @@
     "watch": ["src"],
     "ext": "ts",
     "ignore": [
-      "**/*.test.ts",
-      "**/*.spec.ts"
-  ],
+        "**/*.test.ts",
+        "**/*.spec.ts"
+    ],
     "delay": "3",
     "execMap": {
-      "ts": "tsx"
+        "ts": "tsx"
     }
-  }
+}

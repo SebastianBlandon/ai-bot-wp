@@ -28,20 +28,20 @@ const flowWelcome = addKeyword(EVENTS.WELCOME).addAction(
 const flowVoiceNote = addKeyword(EVENTS.VOICE_NOTE).addAction(
     async (ctx, ctxFn) => {
         try {
-        console.log("🤖 voz a texto....");
-        const text = await handlerAI(ctx);
-        console.log(`🤖 Fin voz a texto....[TEXT]: ${text}`);
-        const currentState = ctxFn.state.getMyState();
-        const fullSentence = `${currentState?.answer ?? ""}. ${text}`;
-        
-        console.log("Mensaje entrante : ", fullSentence);
-        data = await logicBot(ctx.from, fullSentence);
-        console.log('Mensaje saliente : ', data)
-        await ctxFn.flowDynamic(data);
-        console.log("🙉 Envio de mensajes completado....");
-    } catch (error) {
-        console.error('Error in flowVoiceNote:', error);
-    }
+            console.log("🤖 voz a texto....");
+            const text = await handlerAI(ctx);
+            console.log(`🤖 Fin voz a texto....[TEXT]: ${text}`);
+            const currentState = ctxFn.state.getMyState();
+            const fullSentence = `${currentState?.answer ?? ""}. ${text}`;
+            
+            console.log("Mensaje entrante : ", fullSentence);
+            data = await logicBot(ctx.from, fullSentence);
+            console.log('Mensaje saliente : ', data)
+            await ctxFn.flowDynamic(data);
+            console.log("🙉 Envio de mensajes completado....");
+        } catch (error) {
+            console.error('Error in flowVoiceNote:', error);
+        }
     }
 );
 
