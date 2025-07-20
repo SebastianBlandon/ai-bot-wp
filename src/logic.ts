@@ -36,8 +36,8 @@ function getSession(userIdentifier: string): Session {
     return sessions[userIdentifier];
 }
 
-const logicBot = async (celFromWite: string, message: string) => {
-    const userIdentifier = celFromWite;
+const logicBot = async (celFromWrite: string, message: string) => {
+    const userIdentifier = celFromWrite;
     const session = getSession(userIdentifier);
 
     if (processCreateTicket) {
@@ -92,8 +92,9 @@ const logicBot = async (celFromWite: string, message: string) => {
         assistant = await retrieveAssistant();
         thread = await initAssistant();
         clients = await listClients();
-        console.log("CelFromWite: ", celFromWite);
-        client = searchByPhoneNumber(clients, celFromWite.substring(2));
+        console.log("Clients.count: ", clients.count);
+        console.log("CelFromWrite: ", celFromWrite);
+        client = searchByPhoneNumber(clients, celFromWrite);
         console.log("Client: ", client);
         if (client != null) {
             data = await sendToAssistant(thread, assistant, message, client.nombre);
